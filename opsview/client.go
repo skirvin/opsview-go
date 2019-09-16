@@ -3,21 +3,24 @@ package opsview
 import (
 	"log"
 
-	"git.monitoring.bskyb.com/monitoring/opsview-go/rest"
+	"github.com/skirvin/opsview-go/rest"
 )
 
 var functionalityAvailability = map[string]int{
-	"RELOAD": 391,
+	"RELOAD": 1,
+	"CONFIG_HOST": 2,
 }
 
 type Client struct {
 	rest.Client
+	HostGroups []HostGroup
 	Info
 	ReloadStatus
 }
 
-func NewClient(username string, password string, baseUri string, sslVerify bool) (*Client) {
+func NewClient(username string, password string, baseUri string, sslVerify bool, verbose bool) (*Client) {
 	var (
+		hostGroups  []HostGroup
 		info		Info
 		reloadInfo	ReloadStatus
 		err			error
@@ -29,7 +32,9 @@ func NewClient(username string, password string, baseUri string, sslVerify bool)
 			Password:   	password,
 			BaseURI:		baseUri,
 			SSLVerify:		sslVerify,
+			Verbose:		verbose,
 		},
+		hostGroups,
 		info,
 		reloadInfo,
 	}
@@ -49,7 +54,11 @@ func NewClient(username string, password string, baseUri string, sslVerify bool)
 		log.Panic(err)
 	}
 
-	client.ReloadStatus = reloadInfo
+	hostGroups, err = client.GetHostGroups()
+	if err != nil {
+		log.Panic(err)
+	}
+	client.HostGroups = hostGroups
 
 	return client
 }

@@ -22,3 +22,7 @@ make test
 * Install go packages listed in .travis.yml
 ```
 USE_CONTAINER=false make test
+
+## Reference
+https://knowledge.opsview.com/reference#api-intro
+https://knowledge.opsview.com/reference#api-status-filtering-service-objects

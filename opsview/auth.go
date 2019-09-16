@@ -6,7 +6,7 @@ import (
 	"strings"
 	"encoding/json"
 
-	"git.monitoring.bskyb.com/monitoring/opsview-go/rest"
+	"github.com/skirvin/opsview-go/rest"
 )
 
 type XOpsviewToken struct {
@@ -46,7 +46,9 @@ func (c *Client) RefreshLogin() error {
 	var authToken = c.Options.Headers["X-OPSVIEW-TOKEN"]
 
 	if authToken == "" || len(strings.TrimSpace(authToken)) == 0 || authToken == "none" {
-		log.Print("Getting new X-OPSVIEW-TOKEN")
+		if(c.Verbose) {
+			log.Print("Getting new X-OPSVIEW-TOKEN")
+		}
 		body, err := c.Login()
 		if err != nil {
 			return err

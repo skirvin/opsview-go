@@ -11,7 +11,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 
-	"git.monitoring.bskyb.com/monitoring/opsview-go/utils"
+	"github.com/skirvin/opsview-go/utils"
 )
 
 var (
@@ -44,6 +44,7 @@ type Client struct {
 	Username			string
 	Password			string
 	SSLVerify			bool
+	Verbose				bool
 	BaseURI				string
 	LastAuthenticated	time.Time
 	OpsviewName			string
@@ -53,7 +54,7 @@ type Client struct {
 	Options				Options
 }
 
-func (c *Client) NewClient(username string, password string, baseUri string, sslVerify bool) *Client {
+func (c *Client) NewClient(username string, password string, baseUri string, sslVerify bool, verbose bool) *Client {
 	var options Options
 
 	return &Client{
@@ -61,6 +62,7 @@ func (c *Client) NewClient(username string, password string, baseUri string, ssl
 		Password:			password,
 		BaseURI:			baseUri,
 		SSLVerify:  		sslVerify,
+		Verbose:			verbose,
 		Options:			options,
 	}
 }
@@ -103,8 +105,6 @@ func (c *Client) GetQueryString(u *url.URL) {
 
 // TODO: Add options for constructing query strings.
 func (c *Client) RestAPICall(method Method, path string, body interface{}) ([]byte, error) {
-	log.Printf("RestAPICall %s - %s%s", method, utils.Sanatize(c.BaseURI), path)
-
 	var (
 		Url *url.URL
 		err error
@@ -120,8 +120,11 @@ func (c *Client) RestAPICall(method Method, path string, body interface{}) ([]by
 	// Manage the query string
 	c.GetQueryString(Url)
 
-	log.Printf("*** url => %s", Url.String())
-	log.Printf("*** method => %s", method.String())
+	if(c.Verbose) {
+		log.Printf("RestAPICall %s - %s%s", method, utils.Sanatize(c.BaseURI), path)
+		log.Printf("*** url => %s", Url.String())
+		log.Printf("*** method => %s", method.String())
+	}
 
 	// parse url
 	reqUrl, err := url.Parse(Url.String())
@@ -135,7 +138,10 @@ func (c *Client) RestAPICall(method Method, path string, body interface{}) ([]by
 		if err != nil {
 			return nil, err
 		}
-		log.Printf("*** body => %+v", bytes.NewBuffer(bodyJSON))
+		if(c.Verbose) {
+			log.Printf("*** body => %+v", bytes.NewBuffer(bodyJSON))
+		}
+
 		req, err = http.NewRequest(method.String(), reqUrl.String(), bytes.NewBuffer(bodyJSON))
 	} else {
 		req, err = http.NewRequest(method.String(), reqUrl.String(), nil)
@@ -158,9 +164,11 @@ func (c *Client) RestAPICall(method Method, path string, body interface{}) ([]by
 	}
 	defer resp.Body.Close()
 
-	log.Printf("REQ    --> %+v\n", req)
-	log.Printf("RESP   --> %+v\n", resp)
-	log.Printf("ERROR  --> %+v\n", err)
+	if(c.Verbose) {
+		log.Printf("REQ    --> %+v\n", req)
+		log.Printf("RESP   --> %+v\n", resp)
+		log.Printf("ERROR  --> %+v\n", err)
+	}
 
 	data, err := ioutil.ReadAll(resp.Body)
 

@@ -7,8 +7,25 @@ import (
 	"strings"
 	"encoding/json"
 
-	"git.monitoring.bskyb.com/monitoring/opsview-go/rest"
+	"github.com/skirvin/opsview-go/rest"
 )
+
+type Object struct {
+	Name	string `json:"name,omitempty"`
+}
+
+type Reference struct {
+	Reference	string `json:"ref,omitempty"`
+	Name		string `json:"name,omitempty"`
+}
+
+type Summary struct {
+	Page 		string	`json:"page,omitempty"`
+	TotalRows 	string	`json:"totalrows,omitempty"`
+	AllRows 	string	`json:"allrows,omitempty"`
+	TotalPages 	string	`json:"totalpages,omitempty"`
+	Rows 		string	`json:"rows,omitempty"`
+}
 
 type Info struct {
 	Version					string	`json:"opsview_version,omitempty"`
@@ -31,7 +48,10 @@ func (c *Client) GetInfo() (Info, error) {
 		return opsviewInfo, err
 	}
 
-	log.Printf("Info %s", data)
+	if(c.Verbose) {
+		log.Printf("Info %s", data)
+	}
+
 	if err := json.Unmarshal([]byte(data), &opsviewInfo); err != nil {
 		return opsviewInfo, err
 	}

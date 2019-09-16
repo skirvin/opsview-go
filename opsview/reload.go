@@ -6,12 +6,12 @@ import (
 	"strconv"
 	"time"
 
-	"git.monitoring.bskyb.com/monitoring/opsview-go/rest"
+	"github.com/skirvin/opsview-go/rest"
 )
 
 type ReloadStatus struct {
 	ServerStatus       string    `json:"server_status,omitempty"`
-	ConfigurationState string    `json:"configuration_status,omitempty"`
+	ConfigurationStaus string    `json:"configuration_status,omitempty"`
 	AverageDuration    string    `json:"average_duration,omitempty"`
 	LastUpdated        string    `json:"lastupdated,omitempty"`
 	AuditLogEntries    string    `json:"auditlog_entries,omitempty"`
@@ -36,14 +36,19 @@ func (c *Client) GetReloadStatusDetails() (ReloadStatus, error) {
 	}
 
 	if available {
-		log.Printf("Getting OpsView Reload Status from %s\n", c.BaseURI)
+		if(c.Verbose) {
+			log.Printf("Getting OpsView Reload Status from %s\n", c.BaseURI)
+		}
 
 		data, err := c.RestAPICall(rest.GET, uri, nil)
 		if err != nil {
 			return reloadStatus, err
 		}
 
-		log.Printf("Reload State: %s", data)
+		if(c.Verbose) {
+			log.Printf("Reload State: %s", data)
+		}
+
 		if err := json.Unmarshal([]byte(data), &reloadStatus); err != nil {
 			return reloadStatus, err
 		}
