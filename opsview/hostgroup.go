@@ -36,11 +36,14 @@ func (c *Client) GetHostGroups() ([]HostGroup, error) {
 		hostgroupWrapper HostGroupWrapper
 		opsviewHostGroups []HostGroup
 		uri = "/rest/config/hostgroup"
+		queryParams = make(map[string]interface{})
 	)
 
+	queryParams["rows"] = "all"
+
+	c.SetQueryString(queryParams)
 	data, err := c.RestAPICall(rest.GET, uri, nil)
 	if err != nil {
-
 		return opsviewHostGroups, err
 	}
 
@@ -82,7 +85,7 @@ func (c *Client) GetHostsStatusByHostGroup(name string) ([]Host, error) {
 	}
 
 	if available {
-		log.Printf("Getting OpsView Reload Status from %s\n", c.BaseURI)
+		log.Printf("Getting Host Status for %s\n", name)
 
 		c.SetQueryString(queryParams)
 		data, err := c.RestAPICall(rest.GET, uri, nil)
@@ -90,7 +93,7 @@ func (c *Client) GetHostsStatusByHostGroup(name string) ([]Host, error) {
 			return hostDetails, err
 		}
 
-		log.Printf("Reload State: %s", data)
+		log.Printf("Host(s) State: %s", data)
 		if err := json.Unmarshal([]byte(data), &hostDetails); err != nil {
 			return hostDetails, err
 		}

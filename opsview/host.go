@@ -46,17 +46,17 @@ type Host struct {
 	FlapDetectionEnabled			string `json:"flap_detection_enabled,omitempty"`
 	HostTemplates					[]Reference `json:"hosttemplates,omitempty"`
 	Keywords						[]Reference `json:"keywords,omitempty"`
-	CheckPeriod						[]Reference `json:"check_period,omitempty"`
+	CheckPeriod						Object `json:"check_period,omitempty"`
 	HostAttributes					[]HostAttribute `json:"hostattributes,omitempty"`
-	NotificationPeriod				[]Reference `json:"notification_period,omitempty"`
+	NotificationPeriod				Object `json:"notification_period,omitempty"`
 	NotificationOptions				string `json:"notification_options,omitempty"`
 	RancidVendor					string `json:"rancid_vendor,omitempty"`
-	HostGroup						[]Reference `json:"hostgroup,omitempty"`
+	HostGroup						Object `json:"hostgroup,omitempty"`
 	EventHandler					string `json:"event_handler,omitempty"`
-	MonitoredBy						[]Reference `json:"monitored_by,omitempty"`
+	MonitoredBy						Object `json:"monitored_by,omitempty"`
 	Parents							[]Reference `json:"parents,omitempty"`
 	RetryCheckInterval				string `json:"retry_check_interval,omitempty"`
-	Icon							[]Reference `json:"icon,omitempty"`
+	Icon							Object `json:"icon,omitempty"`
 	UseMRTG							[]Reference `json:"use_mrtg,omitempty"`
 	ServiceChecks					[]ServiceCheck `json:"servicechecks,omitempty"`
 	UseRancid						string `json:"use_rancid,omitempty"`
@@ -65,7 +65,7 @@ type Host struct {
 	RancidConnectionType			string `json:"rancid_connection_type,omitempty"`
 	RancidUsername					string `json:"rancid_username,omitempty"`
 	RancidPassword					string `json:"rancid_password,omitempty"`
-	CheckCommand					[]Reference `json:"check_command,omitempty"`
+	CheckCommand					Object `json:"check_command,omitempty"`
 	CheckAttempts					string `json:"check_attempts,omitempty"`
 	CheckInterval					string `json:"check_interval,omitempty"`
 	NotificationInterval			string `json:"notification_interval,omitempty"`
@@ -95,7 +95,7 @@ func (c *Client) HostExists(name string) (bool, error) {
 	return true, err
 }
 
-func (c *Client) GetHostsByHostGroup(id string) ([]Host, error) {
+func (c *Client) GetHostsByHostTemplates(names []string) ([]Host, error) {
 
 	var (
 		uri          = "/rest/config/host"
@@ -104,7 +104,12 @@ func (c *Client) GetHostsByHostGroup(id string) ([]Host, error) {
 		queryParams = make(map[string]interface{})
 	)
 
-	queryParams["hostgroupid"] = id
+	queryParams["rows"] = "all"
+	queryParams["group_by"] = "host"
+
+	for _, name := range names {
+		queryParams["s.hosttemplates.name"] = name
+	}
 
 	available, err := c.FunctionalityAvailable("CONFIG_HOST")
 	if err != nil {
@@ -113,7 +118,7 @@ func (c *Client) GetHostsByHostGroup(id string) ([]Host, error) {
 
 	if available {
 		if(c.Verbose) {
-			log.Printf("Getting Hosts by HostGroup: %s\n", id)
+			log.Printf("Getting Hosts by Host Template(s): %s\n", names)
 		}
 
 		c.SetQueryString(queryParams)
